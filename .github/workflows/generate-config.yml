@@ -1,0 +1,36 @@
+name: Generate Panorama Config
+
+on:
+  workflow_dispatch:
+    inputs:
+      slug:
+        description: "Config filename, without .json"
+        required: true
+        default: "example-panorama"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate config
+        env:
+          CONFIG_SLUG: ${{ inputs.slug }}
+        run: python3 generate_config.py
+
+      - name: Commit generated config
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add configs/
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-generate panorama config"
+            git push
+          fi
